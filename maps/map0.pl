@@ -39,4 +39,3 @@ occupata(pos(3,9)).
 occupata(pos(3,8)).
 occupata(pos(4,8)).
 finale(pos(7,9)).
-finale(pos(7,2)).
