@@ -1,0 +1,20 @@
+rows(8).
+cols(8).
+iniziale(
+    gameState(
+        monster(pos(0,0)),
+        gems([
+            gem(pos(5,5)),
+            gem(pos(7,5)),
+            gem(pos(0,5))
+        ]),
+        ice_blocks([
+            ice(pos(2,1))
+        ]),
+        hammer(pos(7,7))
+    )
+).
+portal(pos(4,4)).
+wall(pos(5,7)).
+wall(pos(6,7)).
+wall(pos(1,3)).
