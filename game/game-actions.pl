@@ -1,22 +1,24 @@
 %% gameState(monster(pos(_,_)),
 %%           gems([]),
 %%           ice_blocks([]),
-%%           hammer(pos(_,_))).
-applicabile(est,gameState(monster(pos(X,Y)),_,_,_)):-
+%%           hammer(pos(_,_),
+%%           finished(0/1)
+%% )).
+applicabile(est,gameState(monster(pos(X,Y)),_,_,_,_)):-
     num_colonne(N),
     X < N-1,
     Xdx is X+1,
     \+occupata(pos(Xdx,Y)).
-applicabile(ovest,gameState(monster(pos(X,Y)),_,_,_)):-
+applicabile(ovest,gameState(monster(pos(X,Y)),_,_,_,_)):-
     X > 0,
     Xsx is X-1,
     \+occupata(pos(Xsx,Y)).
-applicabile(nord,gameState(monster(pos(X,Y)),_,_,_)):-
+applicabile(nord,gameState(monster(pos(X,Y)),_,_,_,_)):-
     num_righe(N),
     Y < N-1,
     Yup is Y+1,
     \+occupata(pos(X,Yup)).
-applicabile(sud,gameState(monster(pos(X,Y)),_,_,_)):-
+applicabile(sud,gameState(monster(pos(X,Y)),_,_,_,_)):-
     Y > 0,
     Ydown is Y-1,
     \+occupata(pos(X,Ydown)).
@@ -26,19 +28,45 @@ trasforma(D,S,
               monster(pos(Xmr,Ymr)),
               gems(Grs),
               ice_blocks(Brs),
-              hammer(pos(Xh,Yh))
+              hammer(pos(Xh,Yh)),
+              Finish
           )
          ):-
-    trasfMonster(D,S,pos(Xmr,Ymr)),
+    getHammer(S,pos(Xh,Yh)),
+    trasfMonster(D,S,pos(Xmr,Ymr),Finish),
     %% check if taken hammer
     trasfGems(D,S,Grs),
     trasfIceBlocks(D,S,Brs).
 
-trasfMonster(D,S,pos(Xmr,Ymr)):-
+trasfMonster(D,S,pos(Xmr,Ymr),Finish):-
     getMonster(S,pos(Xm,Ym)),
     objectOrder(D,S,pos(Xm,Ym),N),
     raycast(D,pos(Xm,Ym),pos(Xc,Yc)),
-    trasfRes(D,Xc,Yc,N,Xmr,Ymr).
+    trasfRes(D,Xc,Yc,N,Xmr,Ymr),
+    checkFinish(Xm,Ym,Xmr,Ymr,Finish).
+checkFinish(Xm,Ym,Xmr,_,1):-
+    portal(pos(Xp,Yp)),
+    Ym == Yp,
+    Xm < Xp,
+    Xmr >= Xp.
+checkFinish(Xm,Ym,Xmr,_,1):-
+    portal(pos(Xp,Yp)),
+    Ym == Yp,
+    Xmr =< Xp,
+    Xm > Xp.
+checkFinish(Xm,Ym,_,Ymr,1):-
+    portal(pos(Xp,Yp)),
+    Xm == Xp,
+    Ym < Yp,
+    Ymr >= Yp.
+checkFinish(Xm,Ym,_,Ymr,1):-
+    portal(pos(Xp,Yp)),
+    Xm == Xp,
+    Ymr =< Yp,
+    Ym > Yp.
+checkFinish(_,_,_,_,0).
+
+   
 trasfGems(D,S,Grs):-
     getGems(S,Gs),
     trasfGs(D,S,Gs,[],Grs).
@@ -63,13 +91,13 @@ trasfB(D,S,ice(pos(X,Y)),ice(pos(Xr,Yr))):-
     trasfRes(D,Xc,Yc,N,Xr,Yr).
 
 trasfRes(est,Xc,Yc,N,Xr,Yc):-
-    Xr is Xc-N.
+    Xr is Xc-N-1.
 trasfRes(ovest,Xc,Yc,N,Xr,Yc):-
-    Xr is Xc+N.
+    Xr is Xc+N+1.
 trasfRes(nord,Xc,Yc,N,Xc,Yr):-
-    Yr is Yc-N.
+    Yr is Yc-N-1.
 trasfRes(sud,Xc,Yc,N,Xc,Yr):-
-    Yr is Yc+N.
+    Yr is Yc+N+1.
 
 objectOrder(D,S,pos(X,Y),Nm):-
     raycast(D,pos(X,Y),pos(Xc,Yc)),
@@ -160,7 +188,45 @@ raycast(sud, pos(X,Y),pos(X,Yc)):-
 raycast(sud, pos(X,Y),pos(X,Yc)):-
     raycast(sud, pos(X,Y-1),pos(X,Yc)).
 
-getMonster(gameState(monster(M),_,_,_),M).
-getGems(gameState(_,gems(Gs),_,_),Gs).
-getBlocks(gameState(_,_,ice_blocks(Bs),_),Bs).
-getHammer(gameState(_,_,_,hammer(H)),H).
+getMonster(gameState(monster(M),_,_,_,_),M).
+getGems(gameState(_,gems(Gs),_,_,_),Gs).
+getBlocks(gameState(_,_,ice_blocks(Bs),_,_),Bs).
+getHammer(gameState(_,_,_,hammer(H),_),H).
+
+/* heuristic of the cheapest path from n to goal */
+/*
+The heuristic can be used to control A*’s behavior.
+
+At one extreme, if h(n) is 0, then only g(n) plays a role, and A* turns into Dijkstra’s Algorithm, which is guaranteed to find a shortest path.
+If h(n) is always lower than (or equal to) the cost of moving from n to the goal,
+then A* is guaranteed to find a shortest path. The lower h(n) is, the more node A* expands, making it slower.
+If h(n) is exactly equal to the cost of moving from n to the goal,
+then A* will only follow the best path and never expand anything else, making it very fast.
+If h(n) is sometimes greater than the cost of moving from n to the goal,
+then A* is not guaranteed to find a shortest path, but it can run faster.
+At the other extreme, if h(n) is very high relative to g(n), then only h(n) plays a role, and A* turns into Greedy Best-First-Search.
+*/
+hScore(S,_,Score):-
+    getMonster(S,pos(Xm,Ym)),
+    portal(pos(Xp,Yp)),
+    abs(Xm - Xp,Xdiff),
+    abs(Ym - Yp,Ydiff),
+    (
+        Xdiff > 0
+    ->
+        Xscore is 1
+    ;
+        Xscore is 0
+    ),
+    (
+        Ydiff > 0
+    ->
+        Yscore is 1
+    ;
+        Yscore is 0
+    ),
+    Score is Xscore + Yscore.
+
+abs(A,A):-
+    A>=0,!.
+abs(A,-A).

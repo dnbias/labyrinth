@@ -11,9 +11,20 @@ iniziale(
         ice_blocks([
             ice(pos(2,1))
         ]),
-        hammer(pos(7,7))
+        hammer(pos(7,7)),
+        0
     )
 ).
+finale(
+    gameState(
+        _,
+        _,
+        _,
+        _,
+        1
+    )
+).
+
 portal(pos(4,4)).
 wall(pos(5,7)).
 wall(pos(6,7)).
