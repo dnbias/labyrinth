@@ -14,11 +14,17 @@ a_star(Start,G_map,F_map,CameFrom_map,Path):-
     insert_ordmap(Start,H,F_map,NewF_map),
     a_star_search([Start],NewG_map,NewF_map,CameFrom_map,Goal,[],Path).
 
-a_star_search([],_,_,_,_,[]).
+a_star_search([],_,_,_,_,_,[]).
+a_star_search(OpenSet,_,F_map,CF_map,_,_,Path):-
+    current(OpenSet,F_map,Current),
+    finale(Current),!,
+    iniziale(S0),
+    reconstructPath(Current,CF_map,PathStates),
+    reconstructActions([S0|PathStates],Path).
 a_star_search(OpenSet0,G_map,F_map,CF_map,Goal,Visited,Path):-
     diff(OpenSet0,Visited,OpenSet),
     current(OpenSet,F_map,Current),
-    \+finale(Current),!,
+    %% \+finale(Current),!,
     subtract(OpenSet,[Current],NewOpenSet),
     \+member(Current,Visited),!,
     findall(Az,applicabile(Az,Current),ListAz),
@@ -30,12 +36,6 @@ a_star_search(OpenSet0,G_map,F_map,CF_map,Goal,Visited,Path):-
     G_tentative is G_curr+1,
     a_star_search_neighbors(Current,G_tentative,G_map,F_map,CF_map,Goal,StatesToAdd,NewG_map,NewF_map,NewCF_map),
     a_star_search(OS,NewG_map,NewF_map,NewCF_map,Goal,[Current|Visited],Path).
-a_star_search(OpenSet,_,F_map,CF_map,_,_,Path):-
-    current(OpenSet,F_map,Current),
-    finale(Current),
-    iniziale(S0),
-    reconstructPath(Current,CF_map,PathStates),
-    reconstructActions([S0|PathStates],Path).
 
 a_star_search_neighbors(_,_,G_map,F_map,CF_map,_,[],G_map,F_map,CF_map).
 a_star_search_neighbors(Current,G_tentative,G_map,F_map,CF_map,G,[N|Neighbors],NewG_map,NewF_map,NewCF_map):-

@@ -27,6 +27,9 @@ applicabile(sud,gameState(monster(pos(X,Y)),_,_,_,_)):-
     Ydown is Y-1,
     \+occupata(pos(X,Ydown)).
 
+trasforma(D,
+          gameState(M,G,I,H,1),
+          gameState(M,G,I,H,1)).
 trasforma(D,S,
           gameState(
               monster(pos(Xmr,Ymr)),
@@ -46,7 +49,7 @@ trasfMonster(D,S,pos(Xmr,Ymr),Finish):-
     objectOrder(D,S,pos(Xm,Ym),N),
     raycast(D,pos(Xm,Ym),pos(Xc,Yc)),
     trasfRes(D,Xc,Yc,N,Xmr,Ymr),
-    checkFinish(Xm,Ym,Xmr,Ymr,Finish).
+    checkFinish(Xm,Ym,Xmr,Ymr,Finish),!.
 
 %% 0 continue
 %% 1 gameover

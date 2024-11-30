@@ -6,7 +6,7 @@ iniziale(
         gems([
             gem(pos(5,5)),
             gem(pos(7,5)),
-            gem(pos(0,5))
+            gem(pos(6,5))
         ]),
         ice_blocks([
             ice(pos(2,3))
@@ -29,4 +29,5 @@ wall(pos(6,7)).
 wall(pos(1,3)).
 wall(pos(7,4)).
 wall(pos(3,3)).
+%% wall(pos(5,0)).
 portal(pos(4,4)).
