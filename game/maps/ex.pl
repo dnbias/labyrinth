@@ -9,7 +9,7 @@ iniziale(
             gem(pos(0,5))
         ]),
         ice_blocks([
-            ice(pos(2,1))
+            ice(pos(2,3))
         ]),
         hammer(pos(7,7)),
         0
@@ -24,8 +24,9 @@ finale(
         1
     )
 ).
-
-portal(pos(4,4)).
 wall(pos(5,7)).
 wall(pos(6,7)).
 wall(pos(1,3)).
+wall(pos(7,4)).
+wall(pos(3,3)).
+portal(pos(4,4)).

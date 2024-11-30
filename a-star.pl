@@ -33,11 +33,14 @@ a_star_search(OpenSet0,G_map,F_map,CF_map,Goal,Visited,Path):-
 a_star_search(OpenSet,_,F_map,CF_map,_,_,Path):-
     current(OpenSet,F_map,Current),
     finale(Current),
-    reconstructPath(Current,CF_map,Path).
+    iniziale(S0),
+    reconstructPath(Current,CF_map,PathStates),
+    reconstructActions([S0|PathStates],Path).
 
 a_star_search_neighbors(_,_,G_map,F_map,CF_map,_,[],G_map,F_map,CF_map).
 a_star_search_neighbors(Current,G_tentative,G_map,F_map,CF_map,G,[N|Neighbors],NewG_map,NewF_map,NewCF_map):-
     gScore(N,G,G_map,G_neighbor),
+    /* heuristic of the cheapest path from n to goal */
     hScore(N, G, H),
     F is H + G_tentative,
     (
@@ -68,6 +71,15 @@ reconstruct(S,CF_map,Temp,R):-
     lookup_ordmap(S,CF_map,P),
     reconstruct(P,CF_map,[S|Temp],R).
 
+reconstructActions(Ss,Path):-
+    recAct(Ss,[],Path).
+recAct([S1|[S2|Ss]],Temp,R):-
+    findAction(S1,S2,Az),
+    append(Temp,[Az],T),
+    recAct([S2|Ss],T,R).
+recAct([S],Temp,Temp).
+
+
 current(OpenSet,F_map,R):-
     curr(OpenSet,F_map,99999,_,R).
 curr([],_,_,R,R).
@@ -92,9 +104,6 @@ gScore(S,_,Map,99999):-
 gScore(S,_,Map,Score):-
     lookup_ordmap(S,Map,Score).
 
-/* heuristic of the cheapest path from n to goal */
-hScore(S,G,Score):-
-    manhattan(S,G,Score).
 
 /* our current best guess */
 fScore(S,S_map,G_map,Score):-
@@ -102,10 +111,6 @@ fScore(S,S_map,G_map,Score):-
     hScore(S,G_map,Score_h),
     Score is Score_g+Score_h.
 
-manhattan(pos(Sx,Sy),pos(Gx,Gy),Score):-
-    abs(Gx-Sx,Rx),
-    abs(Gy-Sy,Ry),
-    Score is Rx+Ry.
 
 abs(A,A):-
     A>=0,!.

@@ -4,8 +4,12 @@
 %%           hammer(pos(_,_),
 %%           finished(0/1)
 %% )).
+
+occupata(pos(X,Y)):-
+    wall(pos(X,Y)).
+
 applicabile(est,gameState(monster(pos(X,Y)),_,_,_,_)):-
-    num_colonne(N),
+    cols(N),
     X < N-1,
     Xdx is X+1,
     \+occupata(pos(Xdx,Y)).
@@ -14,7 +18,7 @@ applicabile(ovest,gameState(monster(pos(X,Y)),_,_,_,_)):-
     Xsx is X-1,
     \+occupata(pos(Xsx,Y)).
 applicabile(nord,gameState(monster(pos(X,Y)),_,_,_,_)):-
-    num_righe(N),
+    rows(N),
     Y < N-1,
     Yup is Y+1,
     \+occupata(pos(X,Yup)).
@@ -32,9 +36,8 @@ trasforma(D,S,
               Finish
           )
          ):-
-    getHammer(S,pos(Xh,Yh)),
     trasfMonster(D,S,pos(Xmr,Ymr),Finish),
-    %% check if taken hammer
+    checkHammer(S,Xmr,Ymr,Xh,Yh),
     trasfGems(D,S,Grs),
     trasfIceBlocks(D,S,Brs).
 
@@ -44,6 +47,13 @@ trasfMonster(D,S,pos(Xmr,Ymr),Finish):-
     raycast(D,pos(Xm,Ym),pos(Xc,Yc)),
     trasfRes(D,Xc,Yc,N,Xmr,Ymr),
     checkFinish(Xm,Ym,Xmr,Ymr,Finish).
+
+%% 0 continue
+%% 1 gameover
+checkFinish(Xm,Ym,_,_,0):-
+    portal(pos(Xp,Yp)),
+    Xm =\= Xp,
+    Ym =\= Yp.
 checkFinish(Xm,Ym,Xmr,_,1):-
     portal(pos(Xp,Yp)),
     Ym == Yp,
@@ -65,6 +75,46 @@ checkFinish(Xm,Ym,_,Ymr,1):-
     Ymr =< Yp,
     Ym > Yp.
 checkFinish(_,_,_,_,0).
+
+%% if X,Y == -1,-1 hammer taken
+checkHammer(S,_,_,X,Y):-
+    getHammer(S,pos(X,Y)),
+    X < 0,
+    Y < 0.
+checkHammer(S,Xmr,_,Xh,Yh):-
+    getMonster(S,pos(Xm,Ym)),
+    getHammer(S,pos(X,Y)),
+    Ym == Y,
+    Xm < X,
+    Xmr >= X,
+    Xh is -1,
+    Yh is -1.
+checkHammer(S,Xmr,_,Xh,Yh):-
+    getMonster(S,pos(Xm,Ym)),
+    getHammer(S,pos(X,Y)),
+    Ym == Y,
+    Xmr =< X,
+    Xm > X,
+    Xh is -1,
+    Yh is -1.
+checkHammer(S,_,Ymr,Xh,Yh):-
+    getMonster(S,pos(Xm,Ym)),
+    getHammer(S,pos(X,Y)),
+    Xm == X,
+    Ym < Y,
+    Ymr >= Y,
+    Xh is -1,
+    Yh is -1.
+checkHammer(S,_,Ymr,Xh,Yh):-
+    getMonster(S,pos(Xm,Ym)),
+    getHammer(S,pos(X,Y)),
+    Xm == X,
+    Ymr =< Y,
+    Ym > Y,
+    Xh is -1,
+    Yh is -1.
+checkHammer(S,_,_,X,Y):-
+    getHammer(S,pos(X,Y)).
 
    
 trasfGems(D,S,Grs):-
@@ -104,6 +154,16 @@ objectOrder(D,S,pos(X,Y),Nm):-
     countObjects(D,S,X,Y,Xc,Yc,Nm).
 
 countObjects(_,_,X,Y,X,Y,0).
+countObjects(_,_,X,_,_,_,0):-
+    cols(C),
+    X >= C,!.
+countObjects(_,_,X,_,_,_,0):-
+    X =< 0,!.
+countObjects(_,_,_,Y,_,_,0):-
+    rows(C),
+    Y >= C,!.
+countObjects(_,_,_,Y,_,_,0):-
+    Y =< 0,!.
 countObjects(est,S,X,Y,Xc,Yc,Rf):-
     object(X,Y,S),!,
     Xn is X+1,
@@ -144,14 +204,14 @@ object(X,Y,
           Gs,Is,H)):-
     \+pos(X,Y) == pos(Xm,Ym),
     object(X,Y,Gs,Is,H).
-object(X,Y,gems([]),ice_blocks([ice(pos(X,Y))|_]),_).
-object(X,Y,gems([]),ice_blocks([ice(pos(Xi,Yi))|Is]),H):-
+object(X,Y,_,ice_blocks([ice(pos(X,Y))|_]),_).
+object(X,Y,_,ice_blocks([ice(pos(Xi,Yi))|Is]),H):-
     \+pos(X,Y) == pos(Xi,Yi),
     object(X,Y,[],ice_blocks(Is),H).
-object(X,Y,gems([gem(pos(X,Y))|_]),_,_).
-object(X,Y,gems([gem(pos(Xg,Yg))|Gs]),Is,H):-
-    \+pos(X,Y) == pos(Xg,Yg),
-    object(X,Y,gems(Gs),Is,H).
+%% object(X,Y,gems([gem(pos(X,Y))|_]),_,_).
+%% object(X,Y,gems([gem(pos(Xg,Yg))|Gs]),Is,H):-
+%%     \+pos(X,Y) == pos(Xg,Yg),
+%%     object(X,Y,gems(Gs),Is,H).
 
 raycast(est, pos(X,Y),pos(Xc,Y)):-
     Xc is X+1,
@@ -230,3 +290,20 @@ hScore(S,_,Score):-
 abs(A,A):-
     A>=0,!.
 abs(A,-A).
+
+findAction(S1,S2,est):-
+    getMonster(S1,pos(X1,_)),
+    getMonster(S2,pos(X2,_)),
+    X1 < X2.
+findAction(S1,S2,ovest):-
+    getMonster(S1,pos(X1,_)),
+    getMonster(S2,pos(X2,_)),
+    X1 > X2.
+findAction(S1,S2,nord):-
+    getMonster(S1,pos(_,Y1)),
+    getMonster(S2,pos(_,Y2)),
+    Y1 < Y2.
+findAction(S1,S2,sud):-
+    getMonster(S1,pos(_,Y1)),
+    getMonster(S2,pos(_,Y2)),
+    Y1 > Y2.

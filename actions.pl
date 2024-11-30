@@ -24,3 +24,12 @@ trasforma(est,pos(X,Y),pos(Xdx,Y)):- Xdx is X+1.
 trasforma(ovest,pos(X,Y),pos(Xsx,Y)):- Xsx is X-1.
 trasforma(nord,pos(X,Y),pos(X,Yup)):- Yup is Y+1.
 trasforma(sud,pos(X,Y),pos(X,Ydown)):- Ydown is Y-1.
+
+/* heuristic of the cheapest path from n to goal */
+hScore(S,G,Score):-
+    manhattan(S,G,Score).
+
+manhattan(pos(Sx,Sy),pos(Gx,Gy),Score):-
+    abs(Gx-Sx,Rx),
+    abs(Gy-Sy,Ry),
+    Score is Rx+Ry.
