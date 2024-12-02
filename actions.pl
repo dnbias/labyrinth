@@ -33,3 +33,12 @@ manhattan(pos(Sx,Sy),pos(Gx,Gy),Score):-
     abs(Gx-Sx,Rx),
     abs(Gy-Sy,Ry),
     Score is Rx+Ry.
+
+findAction(pos(X1,_),pos(X2,_),est):-
+    X1 < X2,!.
+findAction(pos(X1,_),pos(X2,_),ovest):-
+    X1 > X2,!.
+findAction(pos(_,Y1),pos(_,Y2),nord):-
+    Y1 < Y2,!.
+findAction(pos(_,Y1),pos(_,Y2),sud):-
+    Y1 > Y2,!.

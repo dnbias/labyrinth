@@ -27,9 +27,7 @@ applicabile(sud,gameState(monster(pos(X,Y)),_,_,_,_)):-
     Ydown is Y-1,
     \+occupata(pos(X,Ydown)).
 
-trasforma(D,
-          gameState(M,G,I,H,1),
-          gameState(M,G,I,H,1)).
+trasforma(_,gameState(M,G,I,H,1),gameState(M,G,I,H,1)).
 trasforma(D,S,
           gameState(
               monster(pos(Xmr,Ymr)),
@@ -39,7 +37,17 @@ trasforma(D,S,
               Finish
           )
          ):-
-    trasfMonster(D,S,pos(Xmr,Ymr),Finish),
+    trasfMonster(D,S,pos(Xm,Ym),Finish),
+    (
+        Finish == 0
+    ->
+        Xmr is Xm,
+        Ymr is Ym
+    ;
+        portal(pos(Xp,Yp)),
+        Xmr is Xp,
+        Ymr is Yp
+    ),
     checkHammer(S,Xmr,Ymr,Xh,Yh),
     trasfGems(D,S,Grs),
     trasfIceBlocks(D,S,Brs).

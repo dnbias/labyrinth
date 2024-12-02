@@ -77,7 +77,7 @@ recAct([S1|[S2|Ss]],Temp,R):-
     findAction(S1,S2,Az),
     append(Temp,[Az],T),
     recAct([S2|Ss],T,R).
-recAct([S],Temp,Temp).
+recAct([_],Temp,Temp).
 
 
 current(OpenSet,F_map,R):-
