@@ -38,6 +38,7 @@ trasforma(D,S,
               Finish
           )
          ):-
+    getHammer(S,pos(-1,-1)),
     trasfMonster(D,S,pos(Xm,Ym),Finish),
     (
         Finish == 0
@@ -165,8 +166,8 @@ trasfIceBlocks(_,S,[]):-
     getHammer(S,pos(Xh,_)),
     Xh < 0.
 trasfIceBlocks(D,S,Brs):-
-    getBlocks(S,Bs),
-    trasfIB(D,S,Bs,[],Brs).
+    getBlocks(S,Bs).
+    %% trasfIB(D,S,Bs,[],Brs). %% stop from moving
 trasfIB(_,_,[],T,T).
 trasfIB(D,S,[B|Bs],T,Brs):-
     trasfB(D,S,B,Br),
